@@ -1,0 +1,107 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans:
+    -apple-system, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+
+  --color-app-bg: #f4f5f7;
+  --color-surface: #ffffff;
+  --color-surface-alt: #eef0f3;
+  --color-surface-sunken: #e9ebef;
+
+  --color-ink: #12151c;
+  --color-ink-secondary: #5a5f6d;
+  --color-ink-muted: #6d7180;
+
+  --color-border: #e3e5ea;
+  --color-border-strong: #d3d6de;
+
+  --color-brand: #0f2f4d;
+  --color-brand-strong: #0a2038;
+  --color-brand-soft: #e7edf2;
+
+  --color-positive: #1c7a52;
+  --color-positive-soft: #e5f3ec;
+
+  --color-danger: #b3261e;
+
+  --radius-card: 20px;
+  --radius-control: 14px;
+  --radius-pill: 999px;
+}
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    background: var(--color-surface-sunken);
+  }
+
+  body {
+    background: var(--color-surface-sunken);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button {
+    font-family: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .press-scale {
+    transition:
+      transform 120ms ease,
+      box-shadow 120ms ease,
+      background-color 120ms ease;
+  }
+  .press-scale:active {
+    transform: scale(0.97);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .press-scale {
+      transition: none;
+    }
+    .press-scale:active {
+      transform: none;
+    }
+  }
+}
