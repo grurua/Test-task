@@ -1,19 +1,31 @@
 import {
   ArrowLeftRight,
+  Clapperboard,
+  Clock,
   CreditCard,
   Euro,
+  Flame,
+  MapPin,
   PieChart,
   PiggyBank,
   Plane,
+  Percent,
   Repeat,
   Send,
   ShoppingBag,
+  Sparkles,
   SlidersHorizontal,
   Star,
+  Tag,
   Target,
   Utensils,
 } from "lucide-react";
-import type { CategoryShortcutId, FeatureUpdate, RecommendationMetadata } from "../types";
+import type {
+  CategoryShortcutId,
+  FeatureUpdate,
+  OfferCategory,
+  RecommendationMetadata,
+} from "../types";
 
 export const recommendationIcons: Record<RecommendationMetadata["icon"], typeof PiggyBank> = {
   deposit: PiggyBank,
@@ -39,4 +51,18 @@ export const categoryIcons: Record<CategoryShortcutId, typeof PiggyBank> = {
   travel: Plane,
   shopping: ShoppingBag,
   food: Utensils,
+};
+
+export const offerCategoryIcons: Record<OfferCategory, typeof PiggyBank> = {
+  "for-you": Star,
+  popular: Flame,
+  nearby: MapPin,
+  new: Sparkles,
+  "expiring-soon": Clock,
+  cashback: Percent,
+  discounts: Tag,
+  travel: Plane,
+  food: Utensils,
+  shopping: ShoppingBag,
+  entertainment: Clapperboard,
 };

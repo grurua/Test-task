@@ -1,4 +1,4 @@
-import { Check, PackageOpen } from "lucide-react";
+import { Check, Heart, PackageOpen } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { ScreenHeader } from "../components/layout/ScreenHeader";
 import { OfferStatusBadge } from "../components/discover/OfferStatusBadge";
@@ -14,7 +14,8 @@ const toneClasses: Record<string, string> = {
 
 export function OfferDetail() {
   const { id } = useParams<{ id: string }>();
-  const { getOffer, activateOffer, recentlyActivatedOfferId } = useAppState();
+  const { getOffer, activateOffer, recentlyActivatedOfferId, isFavoriteOffer, toggleFavoriteOffer } =
+    useAppState();
   const offer = id ? getOffer(id) : undefined;
 
   if (!offer) {
@@ -37,7 +38,24 @@ export function OfferDetail() {
 
   return (
     <div className="flex h-full flex-col">
-      <ScreenHeader />
+      <ScreenHeader
+        trailing={
+          <button
+            type="button"
+            aria-label={isFavoriteOffer(offer.id) ? "Remove from favorites" : "Add to favorites"}
+            aria-pressed={isFavoriteOffer(offer.id)}
+            onClick={() => toggleFavoriteOffer(offer.id)}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-(--color-ink) press-scale hover:bg-(--color-surface-alt)"
+          >
+            <Heart
+              size={19}
+              className={isFavoriteOffer(offer.id) ? "text-(--color-danger)" : undefined}
+              fill={isFavoriteOffer(offer.id) ? "currentColor" : "none"}
+              aria-hidden="true"
+            />
+          </button>
+        }
+      />
       <div className="flex-1 overflow-y-auto px-4 pb-8">
         <div className="flex items-center gap-3.5">
           <span
