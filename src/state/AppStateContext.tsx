@@ -16,6 +16,8 @@ interface AppStateValue {
   completeRecommendation: (id: string) => void;
   optOutRecommendationType: (type: RecommendationType) => void;
   activateOffer: (id: string) => void;
+  toggleFavoriteOffer: (id: string) => void;
+  isFavoriteOffer: (id: string) => boolean;
   getRecommendation: (id: string) => Recommendation | undefined;
   getOffer: (id: string) => MerchantOffer | undefined;
   recentlyActivatedOfferId: string | null;
@@ -39,6 +41,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   >(null);
   const [recentlyDismissedRecommendationId, setRecentlyDismissedRecommendationId] =
     useState<string | null>(null);
+  const [favoriteOfferIds, setFavoriteOfferIds] = useState<Set<string>>(new Set());
 
   const recommendations = useMemo<Recommendation[]>(() => {
     return baseRecommendations.map((rec) => {
@@ -83,6 +86,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     }, 2400);
   }, []);
 
+  const toggleFavoriteOffer = useCallback((id: string) => {
+    setFavoriteOfferIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const isFavoriteOffer = useCallback(
+    (id: string) => favoriteOfferIds.has(id),
+    [favoriteOfferIds],
+  );
+
   const getRecommendation = useCallback(
     (id: string) => recommendations.find((rec) => rec.id === id),
     [recommendations],
@@ -100,6 +117,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     completeRecommendation,
     optOutRecommendationType,
     activateOffer,
+    toggleFavoriteOffer,
+    isFavoriteOffer,
     getRecommendation,
     getOffer,
     recentlyActivatedOfferId,

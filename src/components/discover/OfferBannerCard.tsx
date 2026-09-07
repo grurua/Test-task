@@ -1,4 +1,4 @@
-import { Clock, ExternalLink } from "lucide-react";
+import { Clock, ExternalLink, Heart } from "lucide-react";
 import { OfferStatusBadge } from "./OfferStatusBadge";
 import type { MerchantOffer } from "../../types";
 
@@ -9,6 +9,8 @@ interface OfferBannerCardProps {
   onActivate: () => void;
   justActivated?: boolean;
   width?: string;
+  isFavorited?: boolean;
+  onToggleFavorite?: () => void;
 }
 
 export function OfferBannerCard({
@@ -18,6 +20,8 @@ export function OfferBannerCard({
   onActivate,
   justActivated = false,
   width = "w-[230px]",
+  isFavorited,
+  onToggleFavorite,
 }: OfferBannerCardProps) {
   return (
     <article
@@ -35,6 +39,33 @@ export function OfferBannerCard({
             {offer.merchant}
             <ExternalLink size={11} aria-hidden="true" />
           </span>
+          {onToggleFavorite ? (
+            <span
+              role="button"
+              tabIndex={0}
+              aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+              aria-pressed={isFavorited}
+              onClick={(event) => {
+                event.stopPropagation();
+                onToggleFavorite();
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onToggleFavorite();
+                }
+              }}
+              className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 press-scale"
+            >
+              <Heart
+                size={14}
+                className={isFavorited ? "text-(--color-danger)" : "text-(--color-ink-secondary)"}
+                fill={isFavorited ? "currentColor" : "none"}
+                aria-hidden="true"
+              />
+            </span>
+          ) : null}
         </div>
         <div className="px-3 pt-2.5">
           <p className="text-[13.5px] font-semibold text-(--color-positive)">
