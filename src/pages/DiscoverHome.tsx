@@ -4,18 +4,17 @@ import { useNavigate } from "react-router-dom";
 import { DiscoverHeader } from "../components/discover/DiscoverHeader";
 import { SegmentedNavigation } from "../components/discover/SegmentedNavigation";
 import { SectionHeader } from "../components/discover/SectionHeader";
-import { PersonalizedHeroCard } from "../components/discover/PersonalizedHeroCard";
-import { RecommendationCard } from "../components/discover/RecommendationCard";
+import { BannerCard } from "../components/discover/BannerCard";
 import { RecommendationWhySheet } from "../components/discover/RecommendationWhySheet";
-import { FeatureStoryCard } from "../components/discover/FeatureStoryCard";
-import { MerchantOfferCard } from "../components/discover/MerchantOfferCard";
-import { CategoryShortcut } from "../components/discover/CategoryShortcut";
-import { PopularCard } from "../components/discover/PopularCard";
+import { OfferBannerCard } from "../components/discover/OfferBannerCard";
+import { CategoryTile } from "../components/discover/CategoryTile";
 import { EmptyState } from "../components/discover/EmptyState";
 import { DiscoverHomeSkeleton } from "../components/discover/Skeleton";
 import { useAppState } from "../state/AppStateContext";
 import { useSimulatedLoading } from "../lib/useSimulatedLoading";
 import { features } from "../data/features";
+import { recommendationIcons, featureIcons } from "../lib/icons";
+import { toneForIndex } from "../lib/palette";
 import type { CategoryShortcutId, Recommendation } from "../types";
 
 const categories: { id: CategoryShortcutId; label: string; to: string }[] = [
@@ -49,14 +48,15 @@ export function DiscoverHome() {
   const remaining = active.filter((rec) => rec.id !== hero?.id);
   const fallbackPrimary = hero ? undefined : remaining[0];
   const secondary = hero ? remaining[0] : remaining[1];
+  const forYouSlides = [hero ?? fallbackPrimary, secondary].filter(
+    (rec): rec is Recommendation => Boolean(rec),
+  );
 
   const homeFeatures = features.filter((feature) =>
     ["feat-international-transfers", "feat-virtual-card", "feat-card-controls"].includes(feature.id),
   );
 
-  const homeOffers = offers
-    .filter((offer) => offer.recommended && offer.status === "available")
-    .slice(0, 3);
+  const homeOffers = offers.filter((offer) => offer.recommended).slice(0, 4);
 
   const popularOffer = offers.find((offer) => offer.id === "offer-booking");
 
@@ -68,36 +68,42 @@ export function DiscoverHome() {
       {loading ? (
         <DiscoverHomeSkeleton />
       ) : (
-      <div className="flex flex-col gap-7 px-4">
+      <div className="flex flex-col gap-8 px-4">
         <section aria-label="For you" className="flex flex-col gap-3">
-          {hero ? (
-            <PersonalizedHeroCard
-              recommendation={hero}
-              onOpen={() => navigate(`/discover/recommendation/${hero.id}`)}
-              onWhy={() => setWhyRecommendation(hero)}
-            />
-          ) : fallbackPrimary ? (
-            <RecommendationCard
-              recommendation={fallbackPrimary}
-              onOpen={() => navigate(`/discover/recommendation/${fallbackPrimary.id}`)}
-              onDismiss={() => dismissRecommendation(fallbackPrimary.id)}
-              onWhy={() => setWhyRecommendation(fallbackPrimary)}
-            />
-          ) : (
+          <SectionHeader title="For you" />
+          {forYouSlides.length === 0 ? (
             <EmptyState
               icon={Sparkles}
               title="You're all caught up"
               description="We'll show new recommendations here when we find something that may be useful to you."
             />
+          ) : (
+            <div className="-mx-4 flex gap-3 overflow-x-auto no-scrollbar px-4 pb-1">
+              {forYouSlides.map((rec, index) => {
+                const isHeroSlide = rec.metadata.emphasis === "hero";
+                const isCompleted = rec.status === "completed";
+                return (
+                  <BannerCard
+                    key={rec.id}
+                    tone={toneForIndex(index)}
+                    icon={recommendationIcons[rec.metadata.icon]}
+                    eyebrow="For you"
+                    headline={rec.headline}
+                    value={isHeroSlide ? rec.value : undefined}
+                    description={rec.description}
+                    badge={isCompleted ? "COMPLETED" : undefined}
+                    width={isHeroSlide ? "w-[82%]" : "w-[78%]"}
+                    onOpen={() => navigate(`/discover/recommendation/${rec.id}`)}
+                    onDismiss={isCompleted ? undefined : () => dismissRecommendation(rec.id)}
+                    ctaLabel={isCompleted ? undefined : rec.ctaLabel}
+                    onCta={() => navigate(`/discover/recommendation/${rec.id}`)}
+                    secondaryLabel={isCompleted ? undefined : "Why am I seeing this?"}
+                    onSecondary={() => setWhyRecommendation(rec)}
+                  />
+                );
+              })}
+            </div>
           )}
-          {secondary ? (
-            <RecommendationCard
-              recommendation={secondary}
-              onOpen={() => navigate(`/discover/recommendation/${secondary.id}`)}
-              onDismiss={() => dismissRecommendation(secondary.id)}
-              onWhy={() => setWhyRecommendation(secondary)}
-            />
-          ) : null}
           {recentlyDismissedRecommendationId ? (
             <p role="status" className="text-[12.5px] text-(--color-ink-muted)">
               Recommendation dismissed. You can adjust this anytime in For You.
@@ -111,11 +117,19 @@ export function DiscoverHome() {
             action={{ label: "See all", onClick: () => navigate("/discover/whats-new") }}
           />
           <div className="-mx-4 flex gap-3 overflow-x-auto no-scrollbar px-4 pb-1">
-            {homeFeatures.map((feature) => (
-              <FeatureStoryCard
+            {homeFeatures.map((feature, index) => (
+              <BannerCard
                 key={feature.id}
-                feature={feature}
+                tone={toneForIndex(index + 2)}
+                icon={featureIcons[feature.icon]}
+                eyebrow="What's new"
+                headline={feature.headline}
+                description={feature.description}
+                badge={feature.isNew ? "NEW" : undefined}
+                width="w-[76%]"
                 onOpen={() => navigate(`/discover/feature/${feature.id}`)}
+                ctaLabel={feature.ctaLabel}
+                onCta={() => navigate(`/discover/feature/${feature.id}`)}
               />
             ))}
           </div>
@@ -127,27 +141,28 @@ export function DiscoverHome() {
             action={{ label: "See all", onClick: () => navigate("/discover/offers") }}
           />
           <div className="-mx-4 flex gap-3 overflow-x-auto no-scrollbar px-4 pb-1">
-            {homeOffers.map((offer) => (
-              <div key={offer.id} className="w-[270px] shrink-0">
-                <MerchantOfferCard
-                  offer={offer}
-                  justActivated={recentlyActivatedOfferId === offer.id}
-                  onOpen={() => navigate(`/discover/offer/${offer.id}`)}
-                  onActivate={() => activateOffer(offer.id)}
-                />
-              </div>
+            {homeOffers.map((offer, index) => (
+              <OfferBannerCard
+                key={offer.id}
+                offer={offer}
+                tone={toneForIndex(index + 1)}
+                justActivated={recentlyActivatedOfferId === offer.id}
+                onOpen={() => navigate(`/discover/offer/${offer.id}`)}
+                onActivate={() => activateOffer(offer.id)}
+              />
             ))}
           </div>
         </section>
 
         <section aria-label="Explore categories" className="flex flex-col gap-3">
           <SectionHeader title="Explore by category" />
-          <div className="-mx-4 flex gap-4 overflow-x-auto no-scrollbar px-4 pb-1">
-            {categories.map((category) => (
-              <CategoryShortcut
+          <div className="grid grid-cols-2 gap-3">
+            {categories.map((category, index) => (
+              <CategoryTile
                 key={category.id}
                 id={category.id}
                 label={category.label}
+                tone={toneForIndex(index)}
                 onClick={() => navigate(category.to)}
               />
             ))}
@@ -157,31 +172,40 @@ export function DiscoverHome() {
         <section aria-label="Popular right now" className="flex flex-col gap-3">
           <SectionHeader title="Popular right now" />
           <div className="-mx-4 flex gap-3 overflow-x-auto no-scrollbar px-4 pb-1">
-            <PopularCard
+            <BannerCard
+              tone={toneForIndex(3)}
               icon={TrendingUp}
-              tag="Popular capability"
-              title="Spending Insights"
+              eyebrow="Popular capability"
+              headline="Spending Insights"
               description="See a monthly breakdown of where your money goes."
+              width="w-[72%]"
               ctaLabel="View insights"
-              onClick={() => navigate("/discover/feature/feat-spending-insights")}
+              onOpen={() => navigate("/discover/feature/feat-spending-insights")}
+              onCta={() => navigate("/discover/feature/feat-spending-insights")}
             />
             {popularOffer ? (
-              <PopularCard
+              <BannerCard
+                tone={toneForIndex(4)}
                 icon={Landmark}
-                tag="Top offer"
-                title={`${popularOffer.merchant} · ${popularOffer.benefitValue}`}
+                eyebrow="Top offer"
+                headline={`${popularOffer.merchant} · ${popularOffer.benefitValue}`}
                 description={popularOffer.condition}
+                width="w-[72%]"
                 ctaLabel="View offer"
-                onClick={() => navigate(`/discover/offer/${popularOffer.id}`)}
+                onOpen={() => navigate(`/discover/offer/${popularOffer.id}`)}
+                onCta={() => navigate(`/discover/offer/${popularOffer.id}`)}
               />
             ) : null}
-            <PopularCard
+            <BannerCard
+              tone={toneForIndex(0)}
               icon={Sparkles}
-              tag="Trending"
-              title="Savings Goal"
+              eyebrow="Trending"
+              headline="Savings Goal"
               description="Customers are setting targets for trips and big purchases."
+              width="w-[72%]"
               ctaLabel="Create a goal"
-              onClick={() => navigate("/discover/feature/feat-savings-goal")}
+              onOpen={() => navigate("/discover/feature/feat-savings-goal")}
+              onCta={() => navigate("/discover/feature/feat-savings-goal")}
             />
           </div>
         </section>
